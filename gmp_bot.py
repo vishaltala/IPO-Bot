@@ -24,7 +24,7 @@ from playwright.sync_api import sync_playwright
 GMAIL_SENDER   = os.environ["GMAIL_SENDER"]
 GMAIL_PASSWORD = os.environ["GMAIL_PASSWORD"]
 GMAIL_RECEIVER = os.environ["GMAIL_RECEIVER"]
-GMAIL_RECEIVER_HV = os.environ["GMAIL_RECEIVER_2"]
+GMAIL_RECEIVER_HV = os.environ["GMAIL_RECEIVER_HV"]
 MIN_FIRES = = os.environ["FIRES"]
 
 GMP_URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
