@@ -24,7 +24,7 @@ from playwright.sync_api import sync_playwright
 GMAIL_SENDER   = os.environ["GMAIL_SENDER"]
 GMAIL_PASSWORD = os.environ["GMAIL_PASSWORD"]
 GMAIL_RECEIVER = os.environ["GMAIL_RECEIVER"]
-GMAIL_RECEIVER_2 = os.environ["GMAIL_RECEIVER_2"]
+GMAIL_RECEIVER_HV = os.environ["GMAIL_RECEIVER_2"]
 MIN_FIRES = = os.environ["FIRES"]
 
 GMP_URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
@@ -292,12 +292,12 @@ def send_email(subject: str, html_body: str) -> None:
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"]    = GMAIL_SENDER
-    msg["To"] = f"{GMAIL_RECEIVER}, {GMAIL_RECEIVER_2}"
+    msg["To"] = f"{GMAIL_RECEIVER}, {GMAIL_RECEIVER_HV}"
     msg.attach(MIMEText(html_body, "html"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(GMAIL_SENDER, GMAIL_PASSWORD)
-        server.sendmail(GMAIL_SENDER, [GMAIL_RECEIVER, GMAIL_RECEIVER_2], msg.as_string())
+        server.sendmail(GMAIL_SENDER, [GMAIL_RECEIVER, GMAIL_RECEIVER_HV], msg.as_string())
 
     print(f"Email sent to {GMAIL_RECEIVER}")
 
