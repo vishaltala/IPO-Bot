@@ -47,4 +47,6 @@ jobs:
           GMAIL_SENDER:   ${{ secrets.GMAIL_SENDER }}
           GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
           GMAIL_RECEIVER: ${{ secrets.GMAIL_RECEIVER }}
+          GMAIL_RECEIVER_HV: ${{ secrets.GMAIL_RECEIVER_HV }}
+          FIRES:             ${{ secrets.FIRES }}
         run: python gmp_bot.py
