@@ -28,7 +28,7 @@ GMAIL_RECEIVER = os.environ["GMAIL_RECEIVER"]
 GMP_URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
 
 # Minimum number of fire emojis required
-MIN_FIRES = 2
+MIN_FIRES = 4
 
 
 # ---------------------------------------------------------------------------
@@ -150,7 +150,10 @@ def scrape_gmp_table() -> list[dict]:
             close_cell   = cell(IDX_CLOSE)
             listing_cell = cell(IDX_LISTING)
 
-            company_name = name_cell.split("\n")[0].strip()
+            # Strip badge suffixes (IPOCT, IPOCALLOTTED, BSE SMEU, L@price etc.)
+            raw_name = name_cell.split("\n")[0].strip()
+            company_name = re.sub(r'\s*(BSE\s*SME|NSE\s*SME|IPO)[A-Z@0-9\.\-\(\)%\s]*$', '', raw_name).strip()
+            company_name = re.sub(r'\s+[A-Z]+L?@[\d\.\-\(\)%\s]+$', '', company_name).strip()
 
             # Debug output — shows exact raw values in Actions log
             print(f"  [{company_name}] name_raw={name_cell!r} | "
@@ -166,7 +169,7 @@ def scrape_gmp_table() -> list[dict]:
                 "ipo_size":   size_cell,
                 "lot":        lot_cell,
                 "open":       open_cell,
-                "close":      close_cell,
+                "close":      close_cell.split("\n")[0].strip(),
                 "listing":    listing_cell,
             })
 
