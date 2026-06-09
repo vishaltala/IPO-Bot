@@ -28,7 +28,7 @@ GMAIL_RECEIVER = os.environ["GMAIL_RECEIVER"]  # where to send the alert
 GMP_URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
 
 # Minimum number of fire emojis required (4 fires = "🔥🔥🔥🔥")
-MIN_FIRES = 4
+MIN_FIRES = 2
 
 
 # ---------------------------------------------------------------------------
