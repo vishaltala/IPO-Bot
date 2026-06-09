@@ -48,13 +48,16 @@ def count_fires(text: str) -> int:
 
 def has_ipo_tag(name_cell_text: str) -> bool:
     """
-    Tag 'IPO' appears as a badge in the name cell for Mainboard IPOs.
-    Must match exactly 'IPO', not 'BSE SME' or 'NSE SME'.
-    We look for the word IPO that is NOT preceded by 'BSE' or 'NSE'.
+    Mainboard IPOs have the badge text 'IPO' in the name cell.
+    SME IPOs have 'BSE SME' or 'NSE SME' instead.
+    The site concatenates badges without spaces, e.g. 'Hexagon Nutrition IPOCT'
+    or 'CMR Green Technologies IPOCALLOTTED'.
+    Strategy: check that 'IPO' appears in the text AND 'SME' does NOT appear.
+    This correctly separates Mainboard (IPO) from SME (BSE SME / NSE SME).
     """
-    # Remove 'BSE SME' and 'NSE SME' so we don't confuse them
-    cleaned = re.sub(r'(BSE|NSE)\s*SME', '', name_cell_text)
-    return bool(re.search(r'\bIPO\b', cleaned))
+    has_ipo = 'IPO' in name_cell_text
+    has_sme = 'SME' in name_cell_text
+    return has_ipo and not has_sme
 
 
 def scrape_gmp_table() -> list[dict]:
