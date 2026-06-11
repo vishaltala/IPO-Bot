@@ -1,17 +1,6 @@
 name: IPO GMP Bot
 
 on:
-  schedule:
-    # 7:00 AM Berlin time (CET = UTC+1, CEST = UTC+2)
-    # Use UTC+1 (CET/winter): 06:00 UTC
-    # Use UTC+2 (CEST/summer): 05:00 UTC
-    # Since Indian IPO season runs all year and Germany is on CEST (UTC+2) now,
-    # we run at 05:00 UTC which = 07:00 CEST (summer) and 06:00 CET (winter).
-    # Adjust the cron below each season if needed, or just run both:
-    - cron: "0 5 * * *"   # 07:00 CEST (summer, UTC+2) — Apr to Oct
-    - cron: "0 6 * * *"   # 07:00 CET  (winter, UTC+1) — Oct to Mar
-
-  # Also allow manual trigger from GitHub UI for testing
   workflow_dispatch:
 
 jobs:
@@ -44,9 +33,9 @@ jobs:
 
       - name: Run GMP Bot
         env:
-          GMAIL_SENDER:   ${{ secrets.GMAIL_SENDER }}
-          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
-          GMAIL_RECEIVER: ${{ secrets.GMAIL_RECEIVER }}
+          GMAIL_SENDER:      ${{ secrets.GMAIL_SENDER }}
+          GMAIL_PASSWORD:    ${{ secrets.GMAIL_PASSWORD }}
+          GMAIL_RECEIVER:    ${{ secrets.GMAIL_RECEIVER }}
           GMAIL_RECEIVER_HV: ${{ secrets.GMAIL_RECEIVER_HV }}
           FIRES:             ${{ secrets.FIRES }}
         run: python gmp_bot.py
