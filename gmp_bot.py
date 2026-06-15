@@ -90,6 +90,10 @@ def scrape_gmp_table() -> list[dict]:
             browser.close()
             return rows
 
+        # Give the table a brief moment to fully populate all rows
+        # (some rows render slightly after the first row appears)
+        page.wait_for_timeout(2000)
+
         # First, detect column positions from the header row
         header_cells = page.query_selector_all("table thead tr th")
         headers = [th.inner_text().strip().upper() for th in header_cells]
@@ -130,6 +134,21 @@ def scrape_gmp_table() -> list[dict]:
         # Grab all table rows
         table_rows = page.query_selector_all("table tbody tr")
         print(f"Found {len(table_rows)} raw rows in table.")
+
+        # Fallback: if no rows found, wait longer and retry once
+        if len(table_rows) == 0:
+            print("No rows found — waiting 5s and retrying...")
+            page.wait_for_timeout(5000)
+            table_rows = page.query_selector_all("table tbody tr")
+            print(f"Retry found {len(table_rows)} raw rows in table.")
+
+            if len(table_rows) == 0:
+                # Debug: dump how many tables exist and their row counts
+                all_tables = page.query_selector_all("table")
+                print(f"Total <table> elements on page: {len(all_tables)}")
+                for i, t in enumerate(all_tables):
+                    tbody_rows = t.query_selector_all("tbody tr")
+                    print(f"  Table {i}: {len(tbody_rows)} tbody rows")
 
         for tr in table_rows:
             tds = tr.query_selector_all("td")
