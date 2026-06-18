@@ -44,9 +44,9 @@ jobs:
         run: python gmp_bot.py
 
       - name: Commit ipo_log.csv to repo
+        if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ipo_log.csv
-          git diff --cached --quiet || git commit -m "chore: update ipo_log.csv [$(date -u '+%Y-%m-%d')]"
-          git push
+          git add -f ipo_log.csv
+          git diff --cached --quiet && echo "No changes to commit" || (git commit -m "chore: update ipo_log.csv [$(date -u '+%Y-%m-%d')]" && git push)
