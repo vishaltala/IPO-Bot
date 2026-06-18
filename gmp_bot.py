@@ -7,6 +7,7 @@ Sends a formatted Gmail alert if any matches are found.
 Runs once daily at 7:00 AM German time via GitHub Actions.
 """
 
+import csv
 import os
 import re
 import smtplib
@@ -25,7 +26,9 @@ GMAIL_SENDER   = os.environ["GMAIL_SENDER"]
 GMAIL_PASSWORD = os.environ["GMAIL_PASSWORD"]
 GMAIL_RECEIVER = os.environ["GMAIL_RECEIVER"]
 
-GMP_URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
+GMP_URL  = "https://www.investorgain.com/report/ipo-gmp-live/331/"
+LOG_FILE = "ipo_log.csv"
+LOG_HEADERS = ["First Seen", "Company", "GMP", "Rating", "IPO Size", "Lot", "Open", "Close", "Listing"]
 
 # Minimum number of fire emojis required
 MIN_FIRES = 4
@@ -319,32 +322,93 @@ def send_email(subject: str, html_body: str) -> None:
     print(f"Email sent to {GMAIL_RECEIVER}")
 
 
+
+# ---------------------------------------------------------------------------
+# CSV Log
+# ---------------------------------------------------------------------------
+
+def load_seen_companies() -> set:
+    """Return set of company names already in ipo_log.csv."""
+    if not os.path.exists(LOG_FILE):
+        return set()
+    with open(LOG_FILE, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        return {row["Company"] for row in reader}
+
+
+def append_to_log(new_rows: list[dict], today: str) -> None:
+    """Append new IPO entries to ipo_log.csv."""
+    file_exists = os.path.exists(LOG_FILE)
+    with open(LOG_FILE, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=LOG_HEADERS)
+        if not file_exists:
+            writer.writeheader()
+        for r in new_rows:
+            writer.writerow({
+                "First Seen": today,
+                "Company":    r["name"],
+                "GMP":        r["gmp"],
+                "Rating":     "🔥" * r["fires"],
+                "IPO Size":   r["ipo_size"],
+                "Lot":        r["lot"],
+                "Open":       r["open"],
+                "Close":      r["close"],
+                "Listing":    r["listing"],
+            })
+    print(f"Appended {len(new_rows)} new row(s) to {LOG_FILE}")
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
+def filter_high_fire_rows(rows: list[dict]) -> list[dict]:
+    """Return all rows with MIN_FIRES or more, regardless of tag or date."""
+    result = []
+    for row in rows:
+        fires = count_fires(row["rating"])
+        if fires >= MIN_FIRES:
+            row["fires"] = fires
+            result.append(row)
+    return result
+
 
 def main():
     berlin = pytz.timezone("Europe/Berlin")
     today  = get_today_str()
     print(f"Running IPO GMP Bot | Today (Berlin): {today}")
 
-    rows    = scrape_gmp_table()
+    rows = scrape_gmp_table()
     print(f"Total rows scraped: {len(rows)}")
 
+    # --- Email alert: Mainboard IPO + 4+ fires + closing today ---
     matched = filter_rows(rows, today)
-    print(f"Rows matching all filters: {len(matched)}")
+    print(f"Rows matching email filters: {len(matched)}")
 
-    if not matched:
-        print("No IPOs matched today's filters. No email sent.")
-        sys.exit(0)
+    if matched:
+        for r in matched:
+            print(f"  EMAIL MATCH: {r['name']} | GMP: {r['gmp']} | "
+                  f"Fires: {r['fires']} | Close: {r['close']}")
+        subject   = f"📈 IPO GMP Alert — {len(matched)} IPO(s) closing today ({today})"
+        html_body = build_html_email(matched, today)
+        send_email(subject, html_body)
+    else:
+        print("No IPOs matched email filters. No email sent.")
 
-    for r in matched:
-        print(f"  MATCH: {r['name']} | GMP: {r['gmp']} | "
-              f"Fires: {r['fires']} | Close: {r['close']}")
+    # --- CSV log: any IPO with 4+ fires, no repeats ---
+    high_fire = filter_high_fire_rows(rows)
+    print(f"Rows with {MIN_FIRES}+ fires (for log): {len(high_fire)}")
 
-    subject   = f"📈 IPO GMP Alert — {len(matched)} IPO(s) closing today ({today})"
-    html_body = build_html_email(matched, today)
-    send_email(subject, html_body)
+    seen = load_seen_companies()
+    new_entries = [r for r in high_fire if r["name"] not in seen]
+    print(f"New unseen entries to log: {len(new_entries)}")
+
+    if new_entries:
+        for r in new_entries:
+            print(f"  LOG: {r['name']} | fires={r['fires']} | close={r['close']}")
+        append_to_log(new_entries, today)
+    else:
+        print("No new high-fire IPOs to log today.")
 
 
 if __name__ == "__main__":
