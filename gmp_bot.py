@@ -210,8 +210,9 @@ def filter_rows(rows: list[dict], today: str) -> list[dict]:
         close_text   = row["close"]
         is_today     = today in close_text
 
-        print(f"  FILTER [{row['name']}]: ipo_tag={is_ipo_tag} "
-              f"fires={fires}/{MIN_FIRES} today={is_today} (close={close_text!r})")
+        if is_ipo_tag:
+            print(f"  FILTER [{row['name']}]: ipo_tag={is_ipo_tag} "
+                  f"fires={fires}/{MIN_FIRES} today={is_today} (close={close_text!r})")
 
         if not is_ipo_tag:
             continue
