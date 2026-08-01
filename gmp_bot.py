@@ -61,7 +61,8 @@ def has_ipo_tag(name_cell_text: str) -> bool:
     """
     has_ipo = 'IPO' in name_cell_text
     has_sme = 'SME' in name_cell_text
-    return has_ipo and not has_sme
+    #return has_ipo and not has_sme
+    return has_ipo or has_sme
 
 
 def scrape_gmp_table() -> list[dict]:
